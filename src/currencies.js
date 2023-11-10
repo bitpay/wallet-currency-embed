@@ -141,7 +141,7 @@ const prepareTable = async () => {
           currencies[currencyCode] = {};
         }
         currencies[currencyCode]['code'] = currencyCode;
-        currencies[currencyCode]['image'] = currency.image;
+        currencies[currencyCode]['image'] = currency.image.replace('_m', '');
         if (!currencies[currencyCode].wallets) {
           currencies[currencyCode].wallets = [];
         }
@@ -159,10 +159,6 @@ const prepareTable = async () => {
     const tableBody = document.querySelector('#tableBody');
 
     Object.values(currencies).forEach((currency) => {
-      if (currency.code.endsWith('_m') || currency.code.endsWith('_e')) {
-        return;
-      }
-
       const currencyTableRow = createCurrencyTableRow(currency);
       const walletsTableRow = createCurrencyWalletsTableRow(
         currency.wallets,

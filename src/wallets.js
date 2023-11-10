@@ -45,10 +45,6 @@ const createWalletCurrenciesTableRow = (walletCurrencies, walletKey) => {
   currenciesWrapper.classList.add(...currenciesWrapperClassLists);
 
   walletCurrencies.forEach((currency) => {
-    if (currency.code.endsWith('_m') || currency.code.endsWith('_e')) {
-      return;
-    }
-
     const walletCurrencyElement = createWalletCurrency(currency);
     currenciesWrapper.appendChild(walletCurrencyElement);
   });
@@ -80,7 +76,7 @@ const createWalletCurrency = (currency) => {
   currencyWrapper.classList.add(...currencyWrapperClassLists);
   currencyCode.textContent = currency.code;
   currencyCode.classList.add(...currencyCodeClassLists);
-  currencyImage.src = currency.image;
+  currencyImage.src = currency.image.replace('_m', '');
   currencyImage.classList.add(...currencyImageClassLists);
   currencyWrapper.appendChild(currencyImage);
   currencyWrapper.appendChild(currencyCode);
