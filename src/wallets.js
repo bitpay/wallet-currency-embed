@@ -45,6 +45,10 @@ const createWalletCurrenciesTableRow = (walletCurrencies, walletKey) => {
   currenciesWrapper.classList.add(...currenciesWrapperClassLists);
 
   walletCurrencies.forEach((currency) => {
+    if (currency.code.endsWith('_m') || currency.code.endsWith('_e')) {
+      return;
+    }
+
     const walletCurrencyElement = createWalletCurrency(currency);
     currenciesWrapper.appendChild(walletCurrencyElement);
   });

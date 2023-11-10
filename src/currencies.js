@@ -1,4 +1,9 @@
-import { getSupportedWallets, createErrorTemplate, createLoadingTemplate, toggleTableRows } from './main.js';
+import {
+  getSupportedWallets,
+  createErrorTemplate,
+  createLoadingTemplate,
+  toggleTableRows,
+} from './main.js';
 
 const createCurrencyTableRow = (currency) => {
   const trElement = document.createElement('tr');
@@ -12,7 +17,7 @@ const createCurrencyTableRow = (currency) => {
     'cursor-pointer',
     'transition-all',
   ];
-  const tdClassLists = ['whitespace-nowrap', 'p-5', 'text-sm'];
+  const tdClassLists = ['whitespace-nowrap', 'py-[10px]', 'p-5', 'text-sm'];
   const displayNameWrapperClassLists = ['flex', 'items-center'];
   const avatarClassLists = ['h-11', 'w-11'];
   const displayNameClassLists = ['ml-4', 'font-medium'];
@@ -36,24 +41,49 @@ const createCurrencyTableRow = (currency) => {
 };
 
 const createCurrencyWalletsTableRow = (wallets, currencyCode) => {
+  const MAX_ITEMS_WITHOUT_COLUMN_SPLIT = 8;
   const trElement = document.createElement('tr');
   const tdElement = document.createElement('td');
   const walletsWrapper = document.createElement('div');
+  const additionalWalletsWrapper = document.createElement('div');
   const trClassLists = ['hidden', 'transition-all'];
-  const tdClassLists = ['whitespace-nowrap', 'p-5', 'text-sm'];
-  const walletsWrapperClassLists = ['flex', 'flex-wrap', '-mx-4'];
+  const tdClassLists = [
+    'whitespace-nowrap',
+    'flex',
+    'flex-col',
+    'md:flex-row',
+    'p-5',
+    'gap-x-2',
+    'text-sm',
+  ];
+  const walletsWrapperClassLists = ['flex', 'flex-1', 'flex-col'];
   trElement.classList.add(...trClassLists);
   tdElement.classList.add(...tdClassLists);
   walletsWrapper.classList.add(...walletsWrapperClassLists);
+  additionalWalletsWrapper.classList.add(...walletsWrapperClassLists);
 
-  wallets.forEach((wallet) => {
-    const walletCurrencyElement = createCurrencyWallet(wallet);
-    walletsWrapper.appendChild(walletCurrencyElement);
-  });
+  if (wallets.length > MAX_ITEMS_WITHOUT_COLUMN_SPLIT) {
+    wallets.forEach((wallet, index) => {
+      if (index >= Math.round(wallets.length / 2)) { // 2 columns
+        additionalWalletsWrapper.appendChild(createCurrencyWallet(wallet));
+      } else {
+        walletsWrapper.appendChild(createCurrencyWallet(wallet));
+      }
 
-  tdElement.appendChild(walletsWrapper);
-  trElement.setAttribute('data-parent-key', currencyCode);
-  trElement.appendChild(tdElement);
+      tdElement.appendChild(walletsWrapper);
+      tdElement.appendChild(additionalWalletsWrapper);
+      trElement.setAttribute('data-parent-key', currencyCode);
+      trElement.appendChild(tdElement);
+    });
+  } else {
+    wallets.forEach((wallet) => {
+      walletsWrapper.appendChild(createCurrencyWallet(wallet));
+    });
+
+    tdElement.appendChild(walletsWrapper);
+    trElement.setAttribute('data-parent-key', currencyCode);
+    trElement.appendChild(tdElement);
+  }
 
   return trElement;
 };
@@ -64,15 +94,7 @@ const createCurrencyWallet = (wallet) => {
   const walletImage = document.createElement('img');
   const walletImageClassLists = ['w-6', 'h-6'];
   const walletNameClassLists = ['ml-2'];
-  const walletWrapperClassLists = [
-    'px-4',
-    'flex',
-    'items-center',
-    'w-full',
-    'sm:w-1/2',
-    'md:w-1/2',
-    'mb-2',
-  ];
+  const walletWrapperClassLists = ['flex', 'items-center', 'w-full', 'mb-2'];
 
   walletWrapper.classList.add(...walletWrapperClassLists);
   walletName.textContent = wallet.name;
@@ -111,24 +133,24 @@ const prepareTable = async () => {
     let currencies = {};
 
     supportedWallets.forEach((supportedWallet) => {
-      const walletCurrencies = supportedWallet['currencies']
+      const walletCurrencies = supportedWallet['currencies'];
       return walletCurrencies.forEach((currency) => {
         const currencyCode = currency.code;
 
         if (!currencies[currencyCode]) {
           currencies[currencyCode] = {};
         }
-        currencies[currencyCode]['code'] = currencyCode
-        currencies[currencyCode]['image'] = currency.image
+        currencies[currencyCode]['code'] = currencyCode;
+        currencies[currencyCode]['image'] = currency.image;
         if (!currencies[currencyCode].wallets) {
           currencies[currencyCode].wallets = [];
         }
 
         currencies[currencyCode].wallets.push({
-          name: supportedWallet.displayName + "(" + supportedWallet.key + ")",
-          image: supportedWallet.image
-        })
-      })
+          name: supportedWallet.displayName + ' (' + supportedWallet.key + ')',
+          image: supportedWallet.image,
+        });
+      });
     });
 
     loadingTemplateEl.remove();
@@ -137,11 +159,15 @@ const prepareTable = async () => {
     const tableBody = document.querySelector('#tableBody');
 
     Object.values(currencies).forEach((currency) => {
+      if (currency.code.endsWith('_m') || currency.code.endsWith('_e')) {
+        return;
+      }
+
       const currencyTableRow = createCurrencyTableRow(currency);
-      const walletsTableRow =createCurrencyWalletsTableRow(
+      const walletsTableRow = createCurrencyWalletsTableRow(
         currency.wallets,
         currency.code
-      )
+      );
       tableBody.appendChild(currencyTableRow);
       tableBody.appendChild(walletsTableRow);
     });
